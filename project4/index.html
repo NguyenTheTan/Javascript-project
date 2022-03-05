@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-body">
+          <span>Keyworks</span>
+          <input type="text" id="keyword"><br />
+          <span class="span">From</span>
+          <input type="date" id="from">
+          <span class="span1">To</span>
+          <input type="date" id="to">
+          <button id="button">Search</button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div id="header" data-toggle="modal" data-target="#myModal">
+    <h1>My News</h1>
+    <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" fill="currentColor" class="bi bi-search"
+      viewBox="0 0 16 16">
+      <path
+        d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+    </svg>
+  </div>
+  <div id="loading">
+    <div class="loader"></div>
+  </div>
+
+  <div id="post-article"></div>
+  <script>
+    $(document).ready(function () {
+      const token = "e96e81b8b9b407c476a985f5f29d8258"
+      const topHeadLinesUrl = `https://gnews.io/api/v4/top-headlines?token=${token}&lang=en`
+      //gọi api lấy dữ liệu lần dầu tải trang
+      getData(topHeadLinesUrl);
+      //hàm chung xử lý gọi dữ liệu từ api và xử lý du liêu hiển thị lên html
+      function getData(url) {
+        $('.loader').css("display", "block");
+        $('#myModal').hide();
+        $('.modal-backdrop.in').hide();
+        fetch(url)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            let htmls = data.articles.map(function (searchItem) {
+              const date = new Date(searchItem.publishedAt).toLocaleDateString();
+              return `
+              <div class="img">
+                <img src= "${searchItem.image}">
+                <ul>
+                  <li><a target='_blank' href="${searchItem.url}">${searchItem.title}</a></li>
+                  <li>${date}</li>
+                  <li><p>${searchItem.description}</p></li>
+                </ul>
+
+              </div>`;
+            });
+            let html = htmls.join('');
+            document.getElementById("post-article").innerHTML = html;
+            $('.loader').css("display", "none");
+          });
+      }
+      //ham xử lý khi click search
+      $('#button').click(function () {
+        let searchUrl = "https://gnews.io/api/v4/search?q=";
+        let keyword = $('#keyword').val();
+        let from = $("#from").val();
+        let to = $("#to").val();
+        if (keyword == "") {
+          alert("Vui lòng nhập từ khoá");
+          return;
+        }
+        searchUrl += keyword;
+        searchUrl += `&token=${token}`;
+        if (from !== '') {
+          from = new Date(from).toISOString().replace(".000", "");
+          searchUrl += "&from=" + from;
+        }
+        if (to !== '') {
+          to = new Date(to).toISOString().replace(".000", "");
+          searchUrl += "&to=" + to;
+        }
+        //điêu chỉnh ngôn ngữ và số lương bản ghi
+        searchUrl += "&lang=en";
+        getData(searchUrl);
+      });
+    });
+  </script>
+</body>
+
+</html>
